@@ -1,14 +1,14 @@
 import { BadRequestException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcryptjs from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 
 import { User } from './entities/user.entity';
-import { LoginDto } from './dto/login.dto';
 import { JwtPayload } from './interfaces/jwt-payload';
+import { LoginResponse } from './interfaces/login-response';
+
+import { LoginDto, CreateUserDto, UpdateAuthDto, RegisterUserDto } from './dto';
 
 @Injectable()
 export class AuthService {
@@ -56,7 +56,23 @@ export class AuthService {
 
   }
 
-  async login( loginDto: LoginDto){
+  /************** Register ******************** */
+
+  async register( registerUserDto: RegisterUserDto ): Promise<LoginResponse>{
+    
+    const user = await this.create( registerUserDto );
+    console.log( {user} );
+    
+
+    return { 
+      user: user, 
+      token: this.getJwtToken({ id: user._id }) 
+    }
+  }
+
+   /************** Login ******************** */
+
+  async login( loginDto: LoginDto): Promise<LoginResponse> {
 
     const { email, password } = loginDto;
     //                             ...findOne({ email })
@@ -77,11 +93,6 @@ export class AuthService {
       user: rest,
       token: this.getJwtToken({ id:user.id }),
     }
-
-    /** JWT
-    * User { _id, name, email, roles } 
-    * Token -> ASDASD.ASDASDASD.ASDASDASD
-    */
     
   }
 
